@@ -1,5 +1,6 @@
 package com.example.indivassignment6q1
 
+import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -21,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -31,6 +33,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.indivassignment6q1.ui.theme.IndivAssignment6Q1Theme
+import java.util.Locale
 import kotlin.math.pow
 
 class MainActivity : ComponentActivity() {
@@ -52,11 +55,12 @@ fun AltimeterScreen() {
     // State variables
     var pressure by remember { mutableFloatStateOf(1013.25f) } // Default P0
     var altitude by remember { mutableFloatStateOf(0f) }
-    var hasSensor by remember { mutableFloatStateOf(true) }
+    var hasSensor by remember { mutableStateOf(true) } // Fixed: Use mutableStateOf for Boolean
 
     // Step 1 & 2: Sensor & Calculation
     DisposableEffect(Unit) {
-        val sensorManager = context.getSystemService(ComponentActivity.SENSOR_SERVICE) as SensorManager
+        // Fixed: Use Context.SENSOR_SERVICE
+        val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
         val pressureSensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE)
 
         if (pressureSensor == null) {
@@ -74,7 +78,8 @@ fun AltimeterScreen() {
                         // P0 = 1013.25
                         val p0 = 1013.25
                         val exponent = 1.0 / 5.255
-                        val base = (currentPressure / p0).toDouble()
+                        val base = (currentPressure / p0).toDouble() // Redundant cast removed by logic below if needed, but safe to keep for clarity or remove if warned. 
+                        // Note: Kotlin math pow expects Double.
                         
                         // Calculate altitude
                         val h = 44330.0 * (1.0 - base.pow(exponent))
@@ -138,7 +143,8 @@ fun AltimeterScreen() {
                 )
             } else {
                 Text(
-                    text = "Pressure: ${String.format("%.2f", pressure)} hPa",
+                    // Fixed: Added Locale.US to format
+                    text = "Pressure: ${String.format(Locale.US, "%.2f", pressure)} hPa",
                     style = MaterialTheme.typography.titleMedium,
                     color = textColor
                 )
@@ -151,7 +157,8 @@ fun AltimeterScreen() {
                     color = textColor.copy(alpha = 0.8f)
                 )
                 Text(
-                    text = "${String.format("%.2f", altitude)} m",
+                    // Fixed: Added Locale.US to format
+                    text = "${String.format(Locale.US, "%.2f", altitude)} m",
                     style = MaterialTheme.typography.displayLarge,
                     fontWeight = FontWeight.Bold,
                     color = textColor
